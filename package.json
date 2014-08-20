@@ -17,7 +17,9 @@
     }
   ],
   "main": "lib/",
-  "bin": "bin/mocha-http",
+  "bin": {
+      "mocha-http": "bin/mocha-http"
+  },
   "scripts": {
     "prepublish": "cake build",
     "test": "cake test"

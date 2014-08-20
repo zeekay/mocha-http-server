@@ -21,6 +21,10 @@ usage = ->
   """
   process.exit 0
 
+version = ->
+  console.log (require '../package').version
+  process.exit 0
+
 opts =
   browser:   false
   checkLeaks: false
@@ -35,18 +39,20 @@ args = process.argv.slice 2
 
 while opt = args.shift()
   switch opt
-    when '--help', '-v'
+    when '-?', '--help'
       usage()
+    when '-v', '--version'
+      version()
     when '--open', '-o'
       opts.open = true
     when '--host', '-h'
       opts.host = args.shift()
     when '--port', '-p'
       opts.port = parseInt args.shift(), 10
-    when '--compilers', '-c'
-      opts.compilers = args.shift()
+    when '--compilers'
+      opts.compilers = args.shift().split ','
     else
-      error 'Unrecognized option' if opt.charAt(0) is '-'
+      opts.files.push opt
 
 server = (require './server') opts
 server.listen opts.port, ->

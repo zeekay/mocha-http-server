@@ -1,6 +1,10 @@
 fs   = require 'fs'
 path = require 'path'
 
+error = (message) ->
+  console.error message
+  process.exit 1
+
 getFiles = (opts, cb) ->
   results = []
   pending = opts.files.length
@@ -47,5 +51,6 @@ walk = (dir, opts, cb) ->
             cb null, results unless --pending
 
 module.exports =
+  error:    error
   getFiles: getFiles
   walk:     walk

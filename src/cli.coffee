@@ -16,7 +16,7 @@ usage = ->
     -t, --timeout <ms>              set test-case timeout in milliseconds [2000]
     --check-leaks                   check for global variable leaks
     --compilers <ext>:<module>,...  specify compiler to use for a given extension
-    --globals <names>               allow the given comma-delimited global [names]
+    --globals <names>,...           allow the given comma-delimited global [names]
     --recursive                     include sub directories
   """
   process.exit 0
@@ -49,8 +49,14 @@ while opt = args.shift()
       opts.host = args.shift()
     when '-p', '--port'
       opts.port = parseInt args.shift(), 10
+    when '--check-leaks'
+      opts.checkLeaks = true
     when '--compilers'
       opts.compilers = args.shift().split ','
+    when '--globals'
+      opts.globals = args.shift().split ','
+    when '--recursive'
+      opts.recursive = true
     else
       opts.files.push opt
 

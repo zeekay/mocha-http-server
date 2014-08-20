@@ -1,3 +1,7 @@
+exec  =  require 'executive'
+server = require './server'
+utils =  require './utils'
+
 error = (message) ->
   console.error message
   process.exit 1
@@ -29,6 +33,7 @@ opts =
   browser:    false
   checkLeaks: false
   compilers:  []
+  files:      []
   globals:    []
   host:       'localhost'
   port:       8080
@@ -58,16 +63,20 @@ while opt = args.shift()
     when '--recursive'
       opts.recursive = true
     else
+      error 'Unrecognized option' if opt.charAt(0) is '-'
       opts.files.push opt
 
-server = (require './server') opts
-server.listen opts.port, ->
-  console.log "mocha-http running on port :#{opts.port}"
+error 'No test files specified' unless opts.files.length
 
-if opts.browser
-  exec = require 'executive'
-  switch os.platform()
-    when 'darwin'
-      exec "open http://#{opts.host}:#{opts.port}"
-    when 'linux'
-      exec "xdg-open http://#{opts.host}:#{opts.port}"
+utils.findFiles opts.files, (err, files) ->
+  error err if err?
+
+  (server.createServer files, opts).listen opts.port, ->
+    console.log "mocha-http running on port :#{opts.port}"
+
+  if opts.browser
+    switch os.platform()
+      when 'darwin'
+        exec "open http://#{opts.host}:#{opts.port}"
+      when 'linux'
+        exec "xdg-open http://#{opts.host}:#{opts.port}"

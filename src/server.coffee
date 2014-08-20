@@ -1,4 +1,12 @@
+fs   = require 'fs'
 http = require 'http'
+path = require 'path'
+
+try
+  mochaPath = path.dirname(require.resolve('mocha'))
+catch err
+  console.error 'Unable to find mocha! `npm install -g mocha`'
+  process.exit 1
 
 module.exports = (options) ->
   http.createServer (req, res) ->
@@ -28,10 +36,10 @@ module.exports = (options) ->
         res.end()
       when '/mocha.css'
         res.writeHead 200, 'Content-Type': 'text/css'
-        fs.createReadStream(__dirname + '/node_modules/mocha/mocha.css').pipe(res)
+        fs.createReadStream(mochaPath + '/mocha.css').pipe(res)
       when '/mocha.js'
         res.writeHead 200, 'Content-Type': 'application/javascript'
-        fs.createReadStream(__dirname + '/node_modules/mocha/mocha.js').pipe(res)
+        fs.createReadStream(mochaPath + '/mocha/mocha.js').pipe(res)
       else
         unless /coffee|js|map/.test req.url.split('.').pop()
           res.writeHead 404

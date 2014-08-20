@@ -2,16 +2,16 @@ fs   = require 'fs'
 http = require 'http'
 path = require 'path'
 
+{error} = require './cli'
+
 try
   mochaPath = path.dirname(require.resolve('mocha'))
 catch err
-  console.error 'Unable to find mocha! `npm install -g mocha`'
-  process.exit 1
+  error 'Unable to find mocha! `npm install -g mocha`'
 
 createServer = (options) ->
   process.on 'uncaughtException', (err) ->
-    console.error err
-    process.exit 1
+    error err
 
   http.createServer (req, res) ->
     writeHead = (code, type) ->
@@ -22,7 +22,7 @@ createServer = (options) ->
         writeHead 200, 'text/html'
 
         checkLeaks = if options.checkLeaks then 'mocha.checkLeaks();' else ''
-        files      = ("<script src='#{f}'></script>" for f in options.files).join '\n'
+        files      = ("<script src='/#{f}'></script>" for f in options.files).join '\n'
         globals    = "mocha.globals(#{JSON.stringify options.globals});"
 
         res.write """
@@ -67,7 +67,7 @@ createServer = (options) ->
           res.end()
           return
 
-        path = __dirname + req.url
+        path = (options.testPath ? process.cwd()) + req.url
 
         fs.exists path, (exists) ->
           if exists

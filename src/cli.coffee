@@ -1,12 +1,7 @@
-exec =  require 'executive'
-os   = require 'os'
-
-server = require './server'
-utils  = require './utils'
-
-error = (message) ->
-  console.error message
-  process.exit 1
+exec              = require 'executive'
+os                = require 'os'
+server            = require './server'
+{getFiles, error} = require './utils'
 
 usage = ->
   console.log """
@@ -70,7 +65,7 @@ while opt = args.shift()
 
 error 'No test files specified' unless opts.files.length
 
-utils.getFiles opts, (err, files) ->
+getFiles opts, (err, files) ->
   error err if err?
   error 'No test files found' unless files.length
 

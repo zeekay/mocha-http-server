@@ -26,14 +26,14 @@ version = ->
   process.exit 0
 
 opts =
-  browser:   false
+  browser:    false
   checkLeaks: false
-  compilers: []
-  globals:   []
-  host:      'localhost'
-  port:      8080
-  recursive: false
-  timeout:   2000
+  compilers:  []
+  globals:    []
+  host:       'localhost'
+  port:       8080
+  recursive:  false
+  timeout:    2000
 
 args = process.argv.slice 2
 

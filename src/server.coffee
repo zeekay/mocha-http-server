@@ -30,18 +30,13 @@ createServer = (options) ->
           <head>
             <meta charset="utf-8">
             <title>Mocha Tests</title>
-
-            <!-- Mocha assets -->
             <link rel="stylesheet" href="/mocha.css" />
-            <script src="/mocha.js"></script>
           </head>
           <body>
             <div id="mocha"></div>
-
-            <!-- Test files -->
+            <script src="/mocha.js"></script>
+            <script>mocha.setup('bdd')</script>
             #{files}
-
-            <!-- Test Setup -->
             <script>
               #{checkLeaks}
               #{globals}

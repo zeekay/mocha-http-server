@@ -1,6 +1,8 @@
-exec  =  require 'executive'
+exec =  require 'executive'
+os   = require 'os'
+
 server = require './server'
-utils =  require './utils'
+utils  = require './utils'
 
 error = (message) ->
   console.error message
@@ -68,10 +70,13 @@ while opt = args.shift()
 
 error 'No test files specified' unless opts.files.length
 
-utils.findFiles opts.files, (err, files) ->
+utils.getFiles opts, (err, files) ->
   error err if err?
+  error 'No test files found' unless files.length
 
-  (server.createServer files, opts).listen opts.port, ->
+  opts.files = files
+
+  (server.createServer opts).listen opts.port, ->
     console.log "mocha-http running on port :#{opts.port}"
 
   if opts.browser

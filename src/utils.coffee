@@ -1,7 +1,25 @@
 fs   = require 'fs'
 path = require 'path'
 
-walk = (dir, cb) ->
+getFiles = (opts, cb) ->
+  results = []
+  pending = opts.files.length
+
+  for file in opts.files
+    do (file) ->
+      fs.stat file, (err, stats) ->
+        unless stats?
+          return cb null, results unless --pending
+
+        unless stats.isDirectory()
+          results.push file
+          return cb null, results unless --pending
+
+        walk file, opts, (err, files) ->
+          results = results.concat files
+          cb null, results unless --pending
+
+walk = (dir, opts, cb) ->
   results = []
 
   fs.readdir dir, (err, files) ->
@@ -17,13 +35,17 @@ walk = (dir, cb) ->
         fs.stat file, (err, stats) ->
           return cb err if err?
 
-          if stats.isDirectory()
+          unless stats.isDirectory()
+            results.push file
+            return cb null, results unless --pending
+
+          if opts.recurse
             walk file, (err, files) ->
               results = results.concat files
               cb null, results unless --pending
           else
-            results.push file
             cb null, results unless --pending
 
 module.exports =
-  walk: walk
+  getFiles: getFiles
+  walk:     walk

@@ -1,3 +1,5 @@
+http = require 'http'
+
 module.exports = (options) ->
   http.createServer (req, res) ->
     switch req.url

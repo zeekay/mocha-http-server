@@ -4,21 +4,32 @@ error = (message) ->
 
 usage = ->
   console.log """
-  mocha-http [options]
+  mocha-http [options] [files]
 
   Options:
-    --browser, -b   Open browser automatically
-    --compilers, -c Specify compiler to use for a given extension
-    --host, -h      Hostname to bind to
-    --port, -p      Port to listen on
+    -?, --help                      output usage information
+    -v, --version                   output the version number
+    -b, --browser                   open browser automatically
+    -h, --host                      hostname to bind to
+    -p, --port                      port to listen on
+    -r, --require <name>            require the given module
+    -t, --timeout <ms>              set test-case timeout in milliseconds [2000]
+    --check-leaks                   check for global variable leaks
+    --compilers <ext>:<module>,...  specify compiler to use for a given extension
+    --globals <names>               allow the given comma-delimited global [names]
+    --recursive                     include sub directories
   """
   process.exit 0
 
 opts =
+  browser:   false
+  checkLeaks: false
+  compilers: []
+  globals:   []
   host:      'localhost'
   port:      8080
-  compilers: ''
-  browser:   false
+  recursive: false
+  timeout:   2000
 
 args = process.argv.slice 2
 

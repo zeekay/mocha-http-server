@@ -43,11 +43,11 @@ while opt = args.shift()
       usage()
     when '-v', '--version'
       version()
-    when '--open', '-o'
-      opts.open = true
-    when '--host', '-h'
+    when '-b', '--browser'
+      opts.browser = true
+    when '-h', '--host'
       opts.host = args.shift()
-    when '--port', '-p'
+    when '-p', '--port'
       opts.port = parseInt args.shift(), 10
     when '--compilers'
       opts.compilers = args.shift().split ','

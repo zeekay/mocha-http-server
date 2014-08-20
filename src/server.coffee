@@ -2,16 +2,17 @@ fs   = require 'fs'
 http = require 'http'
 path = require 'path'
 
-{walk} = require './utils'
-
 try
   mochaPath = path.dirname(require.resolve('mocha'))
 catch err
   console.error 'Unable to find mocha! `npm install -g mocha`'
   process.exit 1
 
+createServer = (options) ->
+  process.on 'uncaughtException', (err) ->
+    console.error err
+    process.exit 1
 
-module.exports = (options) ->
   http.createServer (req, res) ->
     writeHead = (code, type) ->
       res.writeHead code, 'Content-Type': type
@@ -19,32 +20,36 @@ module.exports = (options) ->
     routes =
       index: ->
         writeHead 200, 'text/html'
-        files = ("<script src='#{f}'></script>" for f in options.files).join '\n'
-        res.write '''
+
+        checkLeaks = if options.checkLeaks then 'mocha.checkLeaks();' else ''
+        files      = ("<script src='#{f}'></script>" for f in options.files).join '\n'
+        globals    = "mocha.globals(#{JSON.stringify options.globals});"
+
+        res.write """
           <html>
           <head>
             <meta charset="utf-8">
             <title>Mocha Tests</title>
 
-            // Mocha assets
+            <!-- Mocha assets -->
             <link rel="stylesheet" href="/mocha.css" />
             <script src="/mocha.js"></script>
           </head>
           <body>
             <div id="mocha"></div>
 
-            // Test files
+            <!-- Test files -->
             #{files}
 
-            // Test Setup
+            <!-- Test Setup -->
             <script>
-              // mocha.checkLeaks();
-              // mocha.globals(['jQuery']);
+              #{checkLeaks}
+              #{globals}
               mocha.run();
             </script>
           </body>
           </html>
-        '''
+        """
         res.end()
 
       mocha:
@@ -54,7 +59,7 @@ module.exports = (options) ->
 
         js: ->
           writeHead 200, 'application/javascript'
-          fs.createReadStream(mochaPath + '/mocha/mocha.js').pipe(res)
+          fs.createReadStream(mochaPath + '/mocha.js').pipe(res)
 
       static: ->
         unless /coffee|js|map/.test req.url.split('.').pop()
@@ -81,3 +86,6 @@ module.exports = (options) ->
         routes.mocha.js()
       else
         routes.static()
+
+module.exports =
+  createServer: createServer

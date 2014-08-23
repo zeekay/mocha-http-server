@@ -4,7 +4,7 @@ server            = require './server'
 {getFiles, error} = require './utils'
 
 usage = ->
-  console.log """
+  console.log '''
   mocha-http [options] [files]
 
   Options:
@@ -19,7 +19,7 @@ usage = ->
     --globals <names>,...           allow the given global [names]
     --recursive                     include sub directories
     --require <module>,...          require the given modules
-  """
+  '''
   process.exit 0
 
 version = ->

@@ -1,6 +1,6 @@
-bundle     = require './bundle'
 fs         = require 'fs'
 path       = require 'path'
+bundler    = require './bundler'
 {error}    = require './utils'
 
 try
@@ -8,12 +8,25 @@ try
 catch err
   error 'Unable to find mocha! `npm install -g mocha`'
 
+writeHead = (contentType) ->
+  now = new Date().toUTCString()
+  headers =
+    'Content-Type': "#{contentType}; charset=UTF-8"
+  unless @res.getHeader 'Cache-Control'
+    headers['Cache-Control'] = 'public, max-age=0'
+  unless @res.getHeader 'Date'
+    headers['Date'] = now
+  unless @res.getHeader 'Last-Modified'
+    headers['Last-Modified'] = now
+  @res.writeHead 200, headers
+
 module.exports =
   index: ->
-    @res.writeHead 200, 'Content-Type': 'text/html'
+    writeHead.call @, 'text/html'
 
     checkLeaks = if @opts.checkLeaks then 'mocha.checkLeaks();' else ''
     globals    = "mocha.globals(#{JSON.stringify @opts.globals});"
+    files      =  ("<script src='#{f}'></script>" for f in @files).join '\n  '
 
     @res.write """
       <html>
@@ -26,7 +39,8 @@ module.exports =
         <div id="mocha"></div>
         <script src="/mocha.js"></script>
         <script>mocha.setup('bdd')</script>
-        <script src="/bundle.js"></script>
+        <script src="/prelude.js"></script>
+        #{files}
         <script>
           #{checkLeaks}
           #{globals}
@@ -39,37 +53,27 @@ module.exports =
 
   mocha:
     css: ->
-      @res.writeHead 200, 'Content-Type': 'text/css'
+      writeHead.call @, 'text/css'
       fs.createReadStream(mochaPath + '/mocha.css').pipe(@res)
 
     js: ->
-      @res.writeHead 200, 'Content-Type': 'application/javascript; charset=UTF-8'
+      writeHead.call @, 'application/javascript'
       fs.createReadStream(mochaPath + '/mocha.js').pipe(@res)
 
+  prelude: ->
+    bundler.prelude (err, src) =>
+      writeHead.call @, 'application/javascript'
+      @res.end src
+
   bundle: ->
-    if @req.method == 'HEAD'
-      @res.writeHead 200
-      return @res.end()
+    @file = path.join @root, @req.url
 
-    if @req.method != 'GET'
-      @res.writeHead 405
-      return @res.end()
-
-    now = new Date().toUTCString()
-    headers = 'Content-Type': 'application/javascript; charset=UTF-8'
-    unless @res.getHeader 'Cache-Control'
-      headers['Cache-Control'] = 'public, max-age=0'
-    unless @res.getHeader 'Date'
-      headers['Date'] = now
-    unless @res.getHeader 'Last-Modified'
-      headers['Last-Modified'] = now
-
-    bundle @files, (err, src) =>
+    bundler.bundle.call @, (err, src) =>
       if err?
         @res.writeHead 500
         @res.end()
       else
-        @res.writeHead 200, headers
+        writeHead.call @, 'application/javascript'
         @res.end src
 
   static: ->
@@ -78,14 +82,6 @@ module.exports =
     fs.exists file, (exists) =>
       unless exists
         @res.writeHead 404
-        return @res.end()
-
-      if @req.method == 'HEAD'
-        @res.writeHead 200
-        return @res.end()
-
-      if @req.method != 'GET'
-        @res.writeHead 405
         return @res.end()
 
       return fs.createReadStream(file).pipe(@res)

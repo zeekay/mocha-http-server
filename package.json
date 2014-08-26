@@ -29,9 +29,8 @@
     "url": "http://github.com/zeekay/mocha-http-server"
   },
   "dependencies": {
-    "browserify": "^5.10.1",
-    "coffeeify": "^0.7.0",
-    "postmortem": "^0.1.7"
+    "postmortem": "^0.1.7",
+    "requisite": "^1.6.5"
   },
   "devDependencies": {
     "chai": "^1.9.1",

@@ -5,50 +5,57 @@ error = (message) ->
   console.error message
   process.exit 1
 
+# walks all file/dirs and returns complete list of files.
 getFiles = (opts, cb) ->
   results = []
+  seen    = {}
+
   pending = opts.files.length
+  fileRe = /\.coffee$|\.js$/
 
   for file in opts.files
-    do (file) ->
-      fs.stat file, (err, stats) ->
-        unless stats?
-          return cb null, results unless --pending
+    walk file, opts, (err, files) ->
+      for file in files
+        results.push file if fileRe.test file
+      cb null, results unless --pending
 
-        unless stats.isDirectory()
-          results.push file
-          return cb null, results unless --pending
-
-        walk file, opts, (err, files) ->
-          results = results.concat files
-          cb null, results unless --pending
-
+# walks dir, returns list of files, or just dir (if it's a file).
 walk = (dir, opts, cb) ->
-  results = []
+  unless cb?
+    [cb, opts] = [opts, {}]
 
-  fs.readdir dir, (err, files) ->
-    return cb err if err?
+  opts.recurse ?= true
 
-    pending = files.length
-    return cb null, results unless pending
+  fs.stat dir, (err, stats) ->
+    unless stats?
+      return cb null, []
 
-    for file in files
-      do (file) ->
-        file = path.join dir, file
+    unless stats.isDirectory()
+      return cb null, [dir]
 
-        fs.stat file, (err, stats) ->
-          return cb err if err?
+    fs.readdir dir, (err, files) ->
+      results = []
 
-          unless stats.isDirectory()
-            results.push file
-            return cb null, results unless --pending
+      pending = files.length
+      return cb null, results unless pending
 
-          if opts.recurse
-            walk file, (err, files) ->
-              results = results.concat files
+      for file in files
+        do (file) ->
+          file = path.join dir, file
+
+          fs.stat file, (err, stats) ->
+            return cb err if err?
+
+            unless stats.isDirectory()
+              results.push file
+              return cb null, results unless --pending
+
+            if opts.recurse
+              walk file, (err, files) ->
+                results = results.concat files
+                cb null, results unless --pending
+            else
               cb null, results unless --pending
-          else
-            cb null, results unless --pending
 
 module.exports =
   error:    error

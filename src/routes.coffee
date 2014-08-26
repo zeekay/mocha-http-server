@@ -10,6 +10,7 @@ catch err
 
 reloaderPath = path.join __dirname, '..', 'lib', 'reloader.js'
 
+# Write headers for normal 200 request we do not want cached
 writeHead = (contentType) ->
   now = new Date().toUTCString()
   headers =
@@ -23,6 +24,7 @@ writeHead = (contentType) ->
   @res.writeHead 200, headers
 
 module.exports =
+  # Serve index content
   index: ->
     writeHead.call @, 'text/html'
 
@@ -54,6 +56,7 @@ module.exports =
     """
     @res.end()
 
+  # Serve mocha assets
   mocha:
     css: ->
       writeHead.call @, 'text/css'
@@ -63,11 +66,13 @@ module.exports =
       writeHead.call @, 'application/javascript'
       fs.createReadStream(mochaPath + '/mocha.js').pipe(@res)
 
+  # Serve prelude which defines require, require.define, etc.
   prelude: ->
     bundler.prelude (err, src) =>
       writeHead.call @, 'application/javascript'
       @res.end src
 
+  # Server js bundles
   bundle: ->
     @file = path.join @root, @req.url
 
@@ -79,6 +84,7 @@ module.exports =
         writeHead.call @, 'application/javascript'
         @res.end src
 
+  # Serve static files
   static: ->
     file = path.join @root, @req.url
 
@@ -89,12 +95,20 @@ module.exports =
 
       return fs.createReadStream(file).pipe(@res)
 
+  # Serve client-side script to automate reloading.
   reloader: ->
     writeHead.call @, 'application/javascript'
     fs.createReadStream(reloaderPath).pipe(@res)
 
+  # Leave connection open for up to 60 seconds.
   poll: ->
     writeHead.call @, 'text/plain'
-    setInterval =>
-      @res.write "#{+new Date}\n"
-    , 1000
+    start = +new Date
+    id = setInterval =>
+      now = +new Date
+      if now > start+60*1000
+        clearInterval id
+        @res.end()
+      else
+        @res.write "#{now}\n"
+    , 2000

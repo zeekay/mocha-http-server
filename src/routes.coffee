@@ -8,6 +8,8 @@ try
 catch err
   error 'Unable to find mocha! `npm install -g mocha`'
 
+reloaderPath = path.join __dirname, '..', 'lib', 'reloader.js'
+
 writeHead = (contentType) ->
   now = new Date().toUTCString()
   headers =
@@ -41,6 +43,7 @@ module.exports =
         <script>mocha.setup('bdd')</script>
         <script src="/prelude.js"></script>
         #{files}
+        <script src="/reloader.js"></script>
         <script>
           #{checkLeaks}
           #{globals}
@@ -85,3 +88,13 @@ module.exports =
         return @res.end()
 
       return fs.createReadStream(file).pipe(@res)
+
+  reloader: ->
+    writeHead.call @, 'application/javascript'
+    fs.createReadStream(reloaderPath).pipe(@res)
+
+  poll: ->
+    writeHead.call @, 'text/plain'
+    setInterval =>
+      @res.write "#{+new Date}\n"
+    , 1000

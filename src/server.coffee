@@ -6,11 +6,11 @@ postmortem = require 'postmortem'
 bundler   = require './bundler'
 routes    = require './routes'
 
-shallowClone = (o) ->
-  o2 = {}
-  for own k,v of o
-    o2[k] = v
-  o2
+shallowClone = (obj) ->
+  _obj = {}
+  for own k,v of obj
+    _obj[k] = v
+  _obj
 
 process.on 'uncaughtException', (err) ->
   postmortem.prettyPrint err
@@ -52,12 +52,16 @@ createServer = (opts) ->
     switch pathname
       when '/', '/index.html'
         routes.index.call ctx
+      when '/poll'
+        routes.poll.call ctx
       when '/mocha.css'
         routes.mocha.css.call ctx
       when '/mocha.js'
         routes.mocha.js.call ctx
       when '/prelude.js'
         routes.prelude.call ctx
+      when '/reloader.js'
+        routes.reloader.call ctx
       else
         if bundleRe.test req.url
           routes.bundle.call ctx

@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "postmortem": "^0.1.7",
-    "requisite": "^1.6.5"
+    "requisite": "^1.6.6"
   },
   "devDependencies": {
     "chai": "^1.9.1",

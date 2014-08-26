@@ -1,6 +1,7 @@
 exec              = require 'executive'
 os                = require 'os'
-server            = require './server'
+
+{createServer}    = require './server'
 {getFiles, error} = require './utils'
 
 usage = ->
@@ -75,12 +76,15 @@ getFiles opts, (err, files) ->
 
   opts.files = files
 
-  (server.createServer opts).listen opts.port, ->
-    console.log "mocha-http running on port :#{opts.port}"
+  server = createServer opts
 
-  if opts.browser
-    switch os.platform()
-      when 'darwin'
-        exec "open http://#{opts.host}:#{opts.port}"
-      when 'linux'
-        exec "xdg-open http://#{opts.host}:#{opts.port}"
+  server.prepareBundles ->
+    server.listen opts.port, ->
+      console.log "mocha-http running on port :#{opts.port}"
+
+      if opts.browser
+        switch os.platform()
+          when 'darwin'
+            exec "open http://#{opts.host}:#{opts.port}"
+          when 'linux'
+            exec "xdg-open http://#{opts.host}:#{opts.port}"

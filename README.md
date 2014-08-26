@@ -1,9 +1,9 @@
 ## mocha-http-server
-Lightweight HTTP server designed to run mocha tests in a browser. Uses
-browserify to automatically bundle your test modules for the browser.
+Lightweight HTTP server designed to run mocha tests in a browser. Bundles up
+your test modules automatically for the browser.
 
 ### Features
-- Your tests can use `require` and all the node-goodies browserify supports, and
+- Your tests can use `require` and all the node-goodies browserify supports and
   still run automatically in the browser.
 - Supports CoffeeScript test modules out of the box.
 

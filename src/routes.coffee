@@ -26,7 +26,7 @@ module.exports =
 
     checkLeaks = if @opts.checkLeaks then 'mocha.checkLeaks();' else ''
     globals    = "mocha.globals(#{JSON.stringify @opts.globals});"
-    files      =  ("<script src='#{f}'></script>" for f in @files).join '\n  '
+    files      =  ("<script src='/#{f}'></script>" for f in @files).join '\n  '
 
     @res.write """
       <html>

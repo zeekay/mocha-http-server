@@ -1,11 +1,20 @@
-http      = require 'http'
-path      = require 'path'
-url       = require 'url'
+http       = require 'http'
+path       = require 'path'
+url        = require 'url'
+postmortem = require 'postmortem'
+
+bundler   = require './bundler'
 routes    = require './routes'
-{error}   = require './utils'
+
+shallowClone = (o) ->
+  o2 = {}
+  for own k,v of o
+    o2[k] = v
+  o2
 
 process.on 'uncaughtException', (err) ->
-  error err
+  postmortem.prettyPrint err
+  process.exit 1
 
 createServer = (opts) ->
   # Get full path to each test file
@@ -16,7 +25,8 @@ createServer = (opts) ->
   bundles  = {}
   bundleRe = new RegExp files.join '|'
 
-  http.createServer (req, res) ->
+  # Create http server
+  server = http.createServer (req, res) ->
     # Only GET is supported.
     if req.method == 'HEAD'
       res.writeHead 200
@@ -53,6 +63,40 @@ createServer = (opts) ->
           routes.bundle.call ctx
         else
           routes.static.call ctx
+
+  # Pre-bundle all modules so we can dedupe dependencies.
+  server.prepareBundles = (cb) ->
+    pending = (path.resolve f for f in files)
+
+    prepareBundle = (file) ->
+      console.log 'bundling', file
+      opts =
+        _cache: _cache
+        bundles: bundles
+        file:    file
+        prepare: true
+        root:    root
+
+      bundler.bundle.call opts, (err, bundle) ->
+        if pending.length
+          # Get next module to bundle
+          next = pending.shift()
+
+          # Create module cache for next bundle
+          _cache[next] = {}
+
+          for k,v of bundle.moduleCache
+            mod = shallowClone v
+            mod.external = true  # indicate it's external to other bundles
+            _cache[next][k] = mod
+
+          # Bundle next module
+          prepareBundle next
+        else
+          cb()
+    prepareBundle pending.shift()
+
+  server
 
 module.exports =
   createServer: createServer

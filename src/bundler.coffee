@@ -7,15 +7,18 @@ exports.prelude = (cb) ->
 
 exports.bundle = (cb) ->
   opts =
-    prelude:     false
     base:        @root
     entry:       @file
-    moduleCache: @_cache
+    moduleCache: @_cache[@file]
+    prelude:     false
 
-  done = (err, bundle) ->
+  done = (err, bundle) =>
     if err?
       postmortem.prettyPrint err
-      cb err
+      return cb err
+
+    if @prepare
+      cb null, bundle
     else
       cb null, bundle.toString()
 
@@ -24,8 +27,4 @@ exports.bundle = (cb) ->
 
   requisite.bundle opts, (err, bundle) =>
     @bundles[@file] = bundle
-
-    for k,v of bundle.moduleCache
-      @_cache[k] = v
-
     done err, bundle

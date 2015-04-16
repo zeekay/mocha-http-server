@@ -27,7 +27,7 @@ exports.sourceMapSupport = (cb) ->
     return cb null, cached.sourceMapSupport
 
   opts =
-    base:      __dirname + '/../node_modules/postmortem/node_modules/source-map-support'
+    base:      require.resolve 'source-map-support'
     prelude:   false
     sourceMap: false
 

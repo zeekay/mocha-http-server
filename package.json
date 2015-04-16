@@ -32,7 +32,7 @@
     "executive": "^0.4.7",
     "mocha": "^2.2.4",
     "postmortem": "^0.1.8",
-    "requisite": "^1.9.2"
+    "requisite": "^1.9.4"
   },
   "devDependencies": {
     "chai": "^2.2.0",

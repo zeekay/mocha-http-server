@@ -58,6 +58,8 @@ createServer = (opts) ->
         routes.mocha.css.call ctx
       when '/mocha.js'
         routes.mocha.js.call ctx
+      when '/browser-source-map-support.js'
+        routes.sourceMapSupport.call ctx
       when '/prelude.js'
         routes.prelude.call ctx
       when '/reloader.js'

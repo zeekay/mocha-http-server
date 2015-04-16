@@ -9,6 +9,7 @@ catch err
   error 'Unable to find mocha! `npm install -g mocha`'
 
 reloaderPath = path.join __dirname, '..', 'lib', 'reloader.js'
+sourceMapPath = __dirname + '/../node_modules/postmortem/node_modules/source-map-support'
 
 # Write headers for normal 200 request we do not want cached
 writeHead = (contentType) ->
@@ -43,9 +44,11 @@ module.exports =
         <div id="mocha"></div>
         <script src="/mocha.js"></script>
         <script>mocha.setup('bdd')</script>
-        <script src="/prelude.js"></script>
-        #{files}
         <script src="/reloader.js"></script>
+        <script src="/prelude.js"></script>
+        <script src="/browser-source-map-support.js"></script>
+        <script>sourceMapSupport.install();</script>
+        #{files}
         <script>
           #{checkLeaks}
           #{globals}
@@ -65,6 +68,10 @@ module.exports =
     js: ->
       writeHead.call @, 'application/javascript'
       fs.createReadStream(mochaPath + '/mocha.js').pipe(@res)
+
+  sourceMapSupport: ->
+    writeHead.call @, 'application/javascript'
+    fs.createReadStream(sourceMapPath + '/browser-source-map-support.js').pipe(@res)
 
   # Serve prelude which defines require, require.define, etc.
   prelude: ->

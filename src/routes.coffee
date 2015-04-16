@@ -53,13 +53,13 @@ module.exports =
         <div id="mocha"></div>
         <script src="/mocha.js"></script>
         <script>mocha.setup('bdd')</script>
-        <script src="/reloader.js"></script>
-        <script src="/prelude.js"></script>
+        <script src="/mocha-reloader.js"></script>
+        <script src="/requisite-prelude.js"></script>
         <script src="/source-map-support.js"></script>
         <script>
           (function() {
             var sms = require('./source-map-support');
-            var ignoreJs = /mocha.js|source-map-support.js|native /
+            var ignoreJs = /mocha.js|mocha-reloader.js|requisite-prelude.js|source-map-support.js|native /
             sms.install({
               retrieveSourceMap: function(source) {
                 if (ignoreJs.test(source)) {

@@ -1,7 +1,7 @@
 {
   "name": "mocha-http-server",
   "description": "Lightweight HTTP server designed to run mocha tests in a browser",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "homepage": "http://github.com/zeekay/mocha-http-server",
   "bugs": "http://github.com/zeekay/mocha-http-server/issues",
   "keywords": [

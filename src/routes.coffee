@@ -9,19 +9,28 @@ catch err
   error 'Unable to find mocha! `npm install -g mocha`'
 
 reloaderPath = path.join __dirname, '..', 'lib', 'reloader.js'
-sourceMapPath = __dirname + '/../node_modules/postmortem/node_modules/source-map-support'
 
-# Write headers for normal 200 request we do not want cached
-writeHead = (contentType) ->
-  now = new Date().toUTCString()
-  headers =
-    'Content-Type': "#{contentType}; charset=UTF-8"
-  unless @res.getHeader 'Cache-Control'
-    headers['Cache-Control'] = 'public, max-age=0'
-  unless @res.getHeader 'Date'
-    headers['Date'] = now
-  unless @res.getHeader 'Last-Modified'
-    headers['Last-Modified'] = now
+# Write headers for normal 200 request
+writeHead = (contentType, cache = false) ->
+  headers = {}
+
+  if contentType?
+    headers['Content-Type'] = "#{contentType}; charset=UTF-8"
+
+  # Prevent caching
+  unless cache
+    now = new Date().toUTCString()
+    unless @res.getHeader 'Cache-Control'
+      headers['Cache-Control'] = 'public, max-age=0'
+    unless @res.getHeader 'Date'
+      headers['Date'] = now
+    unless @res.getHeader 'Last-Modified'
+      headers['Last-Modified'] = now
+
+  # Add source map header to js/coffee files
+  if /\.js$|\.coffee$/.test @req.url
+    headers['SourceMap'] = @req.url + '.map'
+
   @res.writeHead 200, headers
 
 module.exports =
@@ -46,8 +55,21 @@ module.exports =
         <script>mocha.setup('bdd')</script>
         <script src="/reloader.js"></script>
         <script src="/prelude.js"></script>
-        <script src="/browser-source-map-support.js"></script>
-        <script>sourceMapSupport.install();</script>
+        <script src="/source-map-support.js"></script>
+        <script>
+          (function() {
+            var sms = require('./source-map-support');
+            var ignoreJs = /mocha.js|source-map-support.js|native /
+            sms.install({
+              retrieveSourceMap: function(source) {
+                if (ignoreJs.test(source)) {
+                  return null;
+                }
+                return sms.retrieveSourceMap(source)
+              }
+            })
+          }())
+        </script>
         #{files}
         <script>
           #{checkLeaks}
@@ -62,21 +84,23 @@ module.exports =
   # Serve mocha assets
   mocha:
     css: ->
-      writeHead.call @, 'text/css'
+      writeHead.call @, 'text/css', true
       fs.createReadStream(mochaPath + '/mocha.css').pipe(@res)
 
     js: ->
-      writeHead.call @, 'application/javascript'
+      writeHead.call @, 'application/javascript', true
       fs.createReadStream(mochaPath + '/mocha.js').pipe(@res)
 
+  # Serve source map support for proper stack traces
   sourceMapSupport: ->
-    writeHead.call @, 'application/javascript'
-    fs.createReadStream(sourceMapPath + '/browser-source-map-support.js').pipe(@res)
+    bundler.sourceMapSupport (err, src) =>
+      writeHead.call @, 'application/javascript', true
+      @res.end src
 
   # Serve prelude which defines require, require.define, etc.
   prelude: ->
     bundler.prelude (err, src) =>
-      writeHead.call @, 'application/javascript'
+      writeHead.call @, 'application/javascript', true
       @res.end src
 
   # Server js bundles
@@ -100,6 +124,7 @@ module.exports =
         @res.writeHead 404
         return @res.end()
 
+      writeHead.call @, null, true
       return fs.createReadStream(file).pipe(@res)
 
   # Serve client-side script to automate reloading.

@@ -17,11 +17,17 @@ do ->
   request.get = (url, cb) -> request 'GET', url, cb
 
   reload = ->
-    setInterval ->
+    n = 0
+    interval = setInterval ->
+      n++
+      if n > 5
+        clearInterval interval
+        return
+
       request.get '/', (err) ->
         unless err?
           location.reload()
-    , 100
+    , 1000
 
   do poll = ->
     request.get '/poll', (err) ->

@@ -23,7 +23,8 @@ createServer = (opts) ->
 
   _cache   = {}
   bundles  = {}
-  bundleRe = new RegExp files.join '|'
+  bundleRe = new RegExp (files.join '$|')  + '$'
+  mapRe    = new RegExp (files.join '.map$|')  + '.map$'
 
   # Create http server
   server = http.createServer (req, res) ->
@@ -58,7 +59,7 @@ createServer = (opts) ->
         routes.mocha.css.call ctx
       when '/mocha.js'
         routes.mocha.js.call ctx
-      when '/browser-source-map-support.js'
+      when '/source-map-support.js'
         routes.sourceMapSupport.call ctx
       when '/prelude.js'
         routes.prelude.call ctx
@@ -67,8 +68,11 @@ createServer = (opts) ->
       else
         if bundleRe.test req.url
           routes.bundle.call ctx
+        else if mapRe.test req.url
+          routes.bundle.call ctx
         else
-          routes.static.call ctx
+          res.writeHead 404
+          res.end()
 
   # Pre-bundle all modules so we can dedupe dependencies.
   server.prepareBundles = (cb) ->

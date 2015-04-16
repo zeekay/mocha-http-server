@@ -1,4 +1,5 @@
 fs         = require 'fs'
+path       = require 'path'
 
 convert    = require 'convert-source-map'
 postmortem = require 'postmortem'
@@ -27,7 +28,7 @@ exports.sourceMapSupport = (cb) ->
     return cb null, cached.sourceMapSupport
 
   opts =
-    base:      require.resolve 'source-map-support'
+    base:      path.dirname require.resolve 'source-map-support'
     prelude:   false
     sourceMap: false
 

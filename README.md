@@ -1,4 +1,6 @@
 ## mocha-http-server
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/zeekay/mocha-http-server.svg)](https://greenkeeper.io/)
 Lightweight HTTP server designed to run mocha tests in a browser. Bundles up
 your test modules automatically, deduping dependencies and adds source map support.
 
